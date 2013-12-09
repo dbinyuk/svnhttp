@@ -1,0 +1,10 @@
+<Location <%= node[:svnhttp][:http_location] %>>
+	     DAV svn
+	     SVNPath <%= node[:svnhttp][:project_path] %>
+	     AuthType Basic
+	     AuthName 'myproject subversion repository'
+	     AuthUserFile <%= node[:svnhttp][:htpasswd_path] %>
+	     <LimitExcept GET PROPFIND OPTIONS REPORT>
+	        Require valid-user
+	     </LimitExcept>
+</Location>
