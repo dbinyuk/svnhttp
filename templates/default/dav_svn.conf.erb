@@ -4,7 +4,11 @@
 	     AuthType Basic
 	     AuthName 'myproject subversion repository'
 	     AuthUserFile <%= node[:svnhttp][:htpasswd_path] %>
+	     <% if node[:svnhttp][:allow_anonymous] %>
 	     <LimitExcept GET PROPFIND OPTIONS REPORT>
 	        Require valid-user
 	     </LimitExcept>
+	     <% else -%>
+	     	Require valid-user
+	     <% end -%>
 </Location>

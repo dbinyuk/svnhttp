@@ -27,8 +27,8 @@ directory "#{node[:svnhttp][:project_path]}" do
 end
 
 directory "#{node[:svnhttp][:project_path]}" do
-	owner "root"
-	group "root"
+	owner "www-data"
+	group "www-data"
 	mode 00766
 	action :create
 end
@@ -56,5 +56,5 @@ template "#{node[:svnhttp][:dav_svn_conf_path]}" do
       mode 0644
       owner "root"
       group "root"
-      notifies :reload, "service[apache2]"
+      notifies :restart, "service[apache2]"
 end
