@@ -2,6 +2,10 @@ package "subversion"
 package "libapache2-svn"
 package "apache2-mpm-prefork"
 
+service "apache2" do
+	action :enable
+end
+
 group "subversion" do
 	action :create
 end
@@ -16,7 +20,13 @@ group "subversion" do
   append true
 end
 
-directory "/home/svn/myproject" do
+directory "#{node[:svnhttp][:project_path]}" do
+	recursive true
+	action :delete
+
+end
+
+directory "#{node[:svnhttp][:project_path]}" do
 	owner "root"
 	group "root"
 	mode 00766
@@ -24,28 +34,27 @@ directory "/home/svn/myproject" do
 end
 
 
-#htpasswd "/etc/subversion/passwd" do
-#	user "admin"
-#	password "admin"
-#end
-
-
-
-#template "DIR" do
-#	variables({
-#    :DIR => "myproject"
-#  })
-#end
-
 bash "adding admin user to #{node[:svnhttp][:htpasswd_path]}" do
 	code "htpasswd -b -c #{node[:svnhttp][:htpasswd_path]} admin #{node[:svnhttp][:admin_passwd]}"
 end
 
+bash "changing permissions on #{node[:svnhttp][:project_path]}" do
+	code <<-EOH
+		DIR=#{node[:svnhttp][:project_path]}
+		chmod -R g+rws $DIR
+		chown -R www-data:subversion $DIR
+		chmod -R g+rws $DIR
+	EOH
+end
 
-#execute "running shell command" do
-#  command "touch /tmp/chefhere"
-#  action :run
-#end
+execute "initializing repo #{node[:svnhttp][:project_path]}" do
+  command "svnadmin create #{node[:svnhttp][:project_path]}"
+end
 
-
-# cacher.default.name = node['apt']['cacher_ipaddress']
+template "#{node[:svnhttp][:dav_svn_conf_path]}" do
+	  source "dav_svn.conf.erb"
+      mode 0644
+      owner "root"
+      group "root"
+      notifies :reload, "service[apache2]"
+end
