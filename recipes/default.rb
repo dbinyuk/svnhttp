@@ -28,7 +28,7 @@ end
 
 directory "#{node[:svnhttp][:project_path]}" do
 	owner "www-data"
-	group "www-data"
+	group "subversion"
 	mode 00766
 	action :create
 end
@@ -38,18 +38,18 @@ bash "adding admin user to #{node[:svnhttp][:htpasswd_path]}" do
 	code "htpasswd -b -c #{node[:svnhttp][:htpasswd_path]} admin #{node[:svnhttp][:admin_passwd]}"
 end
 
-bash "changing permissions on #{node[:svnhttp][:project_path]}" do
+execute "initializing repo #{node[:svnhttp][:project_path]}" do
+  command ""
+end
+
+bash "create svn repo on #{node[:svnhttp][:project_path]}" do
 	code <<-EOH
-		DIR=#{node[:svnhttp][:project_path]}
-		chmod -R g+rws $DIR
-		chown -R www-data:subversion $DIR
-		chmod -R g+rws $DIR
+		svnadmin create #{node[:svnhttp][:project_path]}
+		chown -R www-data:subversion #{node[:svnhttp][:project_path]}
+		chmod -R g+rws #{node[:svnhttp][:project_path]}
 	EOH
 end
 
-execute "initializing repo #{node[:svnhttp][:project_path]}" do
-  command "svnadmin create #{node[:svnhttp][:project_path]}"
-end
 
 template "#{node[:svnhttp][:dav_svn_conf_path]}" do
 	  source "dav_svn.conf.erb"
